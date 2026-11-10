@@ -53,6 +53,8 @@ e.respondWith((async()=>{
 '''
 
 
+APP_VERSION = '3b.21'
+
 def main():
     html = INDEX.read_text(encoding='utf-8')
     strings = re.findall(r"await gun\('([A-Za-z0-9+/=]+)'\)", html)
@@ -72,16 +74,19 @@ def main():
         if marker not in js: raise RuntimeError('OPS-Boot-Marker nicht gefunden')
         js = js.replace(marker, 'await importPreparedClubTasks();\n' + marker, 1)
     js = js.replace('42 Vereinspartien eingebaut', f'{pgn.count("[Event ")} Vereinspartien eingebaut')
+    js = js.replace("version:'3b.20'", f"version:'{APP_VERSION}'")
     raw[2] = js
     raw[0] = re.sub(r'Die [0-9]+ Vereinspartien sind fest enthalten',
                     f'Die {pgn.count("[Event ")} Vereinspartien sind fest enthalten', raw[0])
+    raw[0] = raw[0].replace('Stufe 3b.20', f'Stufe {APP_VERSION}')
+    html = html.replace('OPS 3b.20 wird geladen', f'OPS {APP_VERSION} wird geladen')
     # Replace each original base64 block exactly once.
     for old, plaintext in zip(strings, raw):
         packed = base64.b64encode(gzip.compress(plaintext.encode('utf-8'), mtime=0)).decode('ascii')
         html = html.replace("await gun('"+old+"')", "await gun('"+packed+"')", 1)
     INDEX.write_text(html, encoding='utf-8')
     # Data response freshness is controlled by the SW; increment cache name when contents change.
-    sw = SW_SRC.replace('auto-20261109-v1', 'auto-' + __import__('hashlib').sha256((pgn + (ROOT/'ops-auto-tasks.json').read_text(encoding='utf-8')).encode()).hexdigest()[:12])
+    sw = SW_SRC.replace('auto-20261109-v1', 'auto-' + __import__('hashlib').sha256((APP_VERSION + pgn + (ROOT/'ops-auto-tasks.json').read_text(encoding='utf-8')).encode()).hexdigest()[:12])
     SW.write_text(sw, encoding='utf-8')
     print(f'OPS synchronisiert: {pgn.count("[Event ")} Vereinspartien, Auto-Aufgaben-Import aktiv.')
 
