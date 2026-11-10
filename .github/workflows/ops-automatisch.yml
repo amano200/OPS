@@ -1,0 +1,112 @@
+name: OPS - Vereinspartien und Trainingsaufgaben
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'verein.pgn'
+      - 'ops-auto-tasks.json'
+      - 'scripts/**'
+      - '.github/workflows/ops-automatisch.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'incoming/**'
+      - 'verein.pgn'
+      - 'scripts/**'
+      - '.github/workflows/ops-automatisch.yml'
+  schedule:
+    - cron: '25 4 * * *'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ops-training-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'python-chess==1.999'
+      - name: Pruefe Vereinspartien und OPS-Daten
+        run: python scripts/selftest.py
+
+  analyse-und-publiziere:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Installiere PGN-Auswertung
+        run: python -m pip install 'python-chess==1.999'
+      - name: Installiere Stockfish 18 (offizieller GitHub-Release)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,urllib.request
+          u='https://api.github.com/repos/official-stockfish/Stockfish/releases/tags/sf_18'
+          req=urllib.request.Request(u, headers={'User-Agent':'OPS-schachtrainer'})
+          assets=json.load(urllib.request.urlopen(req))['assets']
+          choices=[x for x in assets if 'ubuntu' in x['name'].lower() and 'x86-64' in x['name'].lower() and 'avx2' in x['name'].lower() and x['name'].endswith('.tar')]
+          if not choices: raise RuntimeError('Stockfish-18-Ubuntu-AVX2-Archiv nicht gefunden.')
+          print('Stockfish-Asset:',choices[0]['name'])
+          print(choices[0]['browser_download_url'],file=open('/tmp/stockfish_url','w'))
+          PY
+          curl -fLsS "$(cat /tmp/stockfish_url)" -o /tmp/stockfish.tar
+          mkdir -p /tmp/ops-stockfish
+          tar -xf /tmp/stockfish.tar -C /tmp/ops-stockfish
+          SF="$(find /tmp/ops-stockfish -type f -name 'stockfish*' | grep -v '\.nnue$' | head -1)"
+          test -n "$SF"
+          chmod +x "$SF"
+          echo "STOCKFISH_PATH=$SF" >> "$GITHUB_ENV"
+      - name: Neue Partien zusammenfuehren (ohne Dubletten)
+        run: python scripts/ops_pipeline.py ingest
+      - name: Analysiere neue Vereinspartien und erstelle Aufgaben
+        run: python scripts/ops_pipeline.py analyse --max-games 3 --deep-depth 30 --deep-seconds 35
+      - name: Synchronisiere OPS-App und Offline-Dateien
+        run: python scripts/sync_ops.py
+      - name: Aktualisierte Daten dauerhaft speichern
+        shell: bash
+        run: |
+          git config user.name "OPS Automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "OPS: Vereinspartien und Stockfish-Aufgaben aktualisiert"
+            git push
+          else
+            echo 'Keine Aenderungen an Daten oder Code.'
+          fi
+      - name: Erstelle oeffentliche Website-Dateien
+        shell: bash
+        run: |
+          mkdir -p site
+          cp index.html service-worker.js manifest.webmanifest icon-192.png icon-512.png verein.pgn ops-auto-tasks.json site/
+      - name: Konfiguriere GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Erstelle Website-Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      - name: Veröffentliche OPS auf GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
