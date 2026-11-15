@@ -1,6 +1,6 @@
 {
   "schema": "ops-auto-1",
-  "generatedAt": "2026-11-13T12:24:33.998239+00:00",
+  "generatedAt": "2026-11-15T12:03:13.443139+00:00",
   "targetDepth": 30,
   "puzzles": [
     {
@@ -1518,6 +1518,75 @@
       ],
       "engine": "Stockfish 18",
       "targetDepth": 30
+    },
+    {
+      "id": "club-029-48",
+      "fen": "r2r2k1/6p1/4p2p/pNpn3q/P7/1QPR2P1/4PP2/1R2K3 b - - 4 24",
+      "side": "b",
+      "bestUci": "c5c4",
+      "bestSan": "c4",
+      "actualUci": "h5h1",
+      "actualSan": "Qh1+",
+      "lossCp": 434,
+      "bestScoreCp": 596,
+      "bestScoreType": "cp",
+      "bestMate": null,
+      "actualAfterScoreCp": -162,
+      "actualAfterScoreType": "cp",
+      "actualAfterMate": null,
+      "moveNumber": 24,
+      "phase": "Mittelspiel",
+      "date": "????.??.??",
+      "gameUrl": "https://www.chess.com/a/34cJEykaSbZPC/analysis",
+      "timeControl": "90m+",
+      "sourceType": "club",
+      "sourceLabel": "Vereinspartie · Langpartie 90+ Min.",
+      "positionClass": "kritischer Fehler",
+      "priorityWeight": 1,
+      "practicalReason": "Stockfish-bestätigte kritische Entscheidung",
+      "turningPoint": true,
+      "priority": 585,
+      "analysisDepth": 28,
+      "bestWdl": null,
+      "actualAfterWdl": null,
+      "bestPvUci": [
+        "c5c4",
+        "g3g4",
+        "h5g4",
+        "d3g3",
+        "g4g3",
+        "f2g3",
+        "c4b3",
+        "b1b3",
+        "a8c8",
+        "e2e4",
+        "d5c3",
+        "b3c3",
+        "c8c3",
+        "b5c3",
+        "d8d4",
+        "e1e2"
+      ],
+      "bestPvSan": [
+        "c4",
+        "g4",
+        "Qxg4",
+        "Rg3",
+        "Qxg3",
+        "fxg3",
+        "cxb3",
+        "Rxb3",
+        "Rac8",
+        "e4",
+        "Nxc3",
+        "Rxc3",
+        "Rxc3",
+        "Nxc3",
+        "Rd4",
+        "Ke2"
+      ],
+      "engine": "Stockfish 18",
+      "targetDepth": 30
     }
   ],
   "processedClubIds": [
@@ -1535,6 +1604,9 @@
     "club-035",
     "club-034",
     "club-033",
-    "club-032"
+    "club-032",
+    "club-031",
+    "club-030",
+    "club-029"
   ]
 }
