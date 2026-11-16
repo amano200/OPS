@@ -89,6 +89,21 @@
       "id": "club-029",
       "taskCount": 1,
       "completedAt": "2026-11-15T12:03:13.443005+00:00"
+    },
+    "352907758557f095a40b5cc5a14c1f03e19ca4106747e1bc66dc3d118da4b11b": {
+      "id": "club-028",
+      "taskCount": 0,
+      "completedAt": "2026-11-16T12:54:47.373153+00:00"
+    },
+    "0d61afd6c4d99d5489eccc493a5e26ec104e1d4eaabf9a9bf7f5960d40b5c818": {
+      "id": "club-027",
+      "taskCount": 0,
+      "completedAt": "2026-11-16T12:54:48.172407+00:00"
+    },
+    "0c678ddf38bd75770d92bbaafb006b19387ddb2ed15500c63a121f203f6e6007": {
+      "id": "club-026",
+      "taskCount": 1,
+      "completedAt": "2026-11-16T12:56:14.893168+00:00"
     }
   }
 }
