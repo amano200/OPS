@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Synchronise the gzip-embedded OPS 3b.20 PGN and install task import without replacing user data."""
+"""Synchronise the gzip-embedded OPS 3b.22 PGN and install task import without replacing user data."""
 import base64
 import gzip
 import json
 import pathlib
 import re
+from upgrade_ops_322 import upgrade_js_322
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 INDEX = ROOT / 'index.html'
@@ -53,7 +54,7 @@ e.respondWith((async()=>{
 '''
 
 
-APP_VERSION = '3b.21'
+APP_VERSION = '3b.22'
 
 def main():
     html = INDEX.read_text(encoding='utf-8')
@@ -64,7 +65,7 @@ def main():
     raw = [gzip.decompress(base64.b64decode(s)).decode('utf-8') for s in strings]
     pgn = PGN.read_text(encoding='utf-8')
     raw[1] = pgn
-    js = raw[2]
+    js = upgrade_js_322(raw[2])
     if 'async function importPreparedClubTasks(){' not in js:
         marker = 'async function bootOps320(){'
         if marker not in js: raise RuntimeError('OPS-Startfunktion nicht gefunden')
@@ -74,12 +75,12 @@ def main():
         if marker not in js: raise RuntimeError('OPS-Boot-Marker nicht gefunden')
         js = js.replace(marker, 'await importPreparedClubTasks();\n' + marker, 1)
     js = js.replace('42 Vereinspartien eingebaut', f'{pgn.count("[Event ")} Vereinspartien eingebaut')
-    js = js.replace("version:'3b.20'", f"version:'{APP_VERSION}'")
+    js = re.sub(r"version:'3b\.\d+'", f"version:'{APP_VERSION}'", js)
     raw[2] = js
     raw[0] = re.sub(r'Die [0-9]+ Vereinspartien sind fest enthalten',
                     f'Die {pgn.count("[Event ")} Vereinspartien sind fest enthalten', raw[0])
-    raw[0] = raw[0].replace('Stufe 3b.20', f'Stufe {APP_VERSION}')
-    html = html.replace('OPS 3b.20 wird geladen', f'OPS {APP_VERSION} wird geladen')
+    raw[0] = re.sub(r'Stufe 3b\.\d+', f'Stufe {APP_VERSION}', raw[0])
+    html = re.sub(r'OPS 3b\.\d+ wird geladen', f'OPS {APP_VERSION} wird geladen', html)
     # Replace each original base64 block exactly once.
     for old, plaintext in zip(strings, raw):
         packed = base64.b64encode(gzip.compress(plaintext.encode('utf-8'), mtime=0)).decode('ascii')

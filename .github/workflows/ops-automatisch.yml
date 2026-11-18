@@ -38,7 +38,9 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install 'python-chess==1.999'
-      - name: Pruefe Vereinspartien und OPS-Daten
+      - name: Synchronisiere OPS 3b.22 zum Validieren
+        run: python scripts/sync_ops.py
+      - name: Pruefe Vereinspartien, JS und Vorzeichen
         run: python scripts/selftest.py
 
   analyse-und-publiziere:
