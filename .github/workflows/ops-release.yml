@@ -1,0 +1,56 @@
+name: OPS - Schnelle GitHub-Pages-Veröffentlichung
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'index.html'
+      - '.github/workflows/ops-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ops-pages-fast-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Baue aktuelle OPS-Version aus Originaldateien
+        run: python scripts/sync_ops.py
+      - name: Kontrolliere eingebettete Version und JavaScript
+        shell: bash
+        run: |
+          python - <<'PY'
+          import base64,gzip,pathlib,re
+          html=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r"await gun\('([A-Za-z0-9+/=]+)'\)",html)
+          assert len(blocks)==3, 'OPS gzip structure broken'
+          app=gzip.decompress(base64.b64decode(blocks[2])).decode('utf-8')
+          assert "version:'3b.22'" in app, 'OPS 3b.22 version missing'
+          assert "shortHumanEval(cached.ev,currentPuzzle?.side||'w')" in app, 'white score signs missing'
+          assert "showPvContinuation(fen,r30" in app, 'Stockfish continuation missing'
+          pathlib.Path('/tmp/ops-release-app.js').write_text(app,encoding='utf-8')
+          PY
+          node --check /tmp/ops-release-app.js
+      - name: Paketiere OPS für GitHub Pages
+        run: |
+          mkdir -p site
+          cp index.html service-worker.js manifest.webmanifest icon-192.png icon-512.png verein.pgn ops-auto-tasks.json site/
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+      - name: Veröffentliche OPS 3b.22
+        id: deployment
+        uses: actions/deploy-pages@v4
