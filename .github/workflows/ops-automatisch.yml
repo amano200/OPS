@@ -61,12 +61,14 @@ jobs:
       - name: Installiere PGN-Auswertung
         run: python -m pip install 'python-chess==1.999'
       - name: Installiere Stockfish 18 (offizieller GitHub-Release)
+        env:
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           python - <<'PY'
-          import json,urllib.request
+          import json,os,urllib.request
           u='https://api.github.com/repos/official-stockfish/Stockfish/releases/tags/sf_18'
-          req=urllib.request.Request(u, headers={'User-Agent':'OPS-schachtrainer'})
+          req=urllib.request.Request(u, headers={'User-Agent':'OPS-schachtrainer','Authorization':'Bearer '+os.environ['GH_TOKEN']})
           assets=json.load(urllib.request.urlopen(req))['assets']
           choices=[x for x in assets if 'ubuntu' in x['name'].lower() and 'x86-64' in x['name'].lower() and 'avx2' in x['name'].lower() and x['name'].endswith('.tar')]
           if not choices: raise RuntimeError('Stockfish-18-Ubuntu-AVX2-Archiv nicht gefunden.')
