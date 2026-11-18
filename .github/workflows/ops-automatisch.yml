@@ -96,6 +96,8 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -m "OPS: Vereinspartien und Stockfish-Aufgaben aktualisiert"
+            # Der Browser-Release-Workflow kann main waehrend einer langen Analyse aktualisieren.
+            git pull --rebase origin main
             git push
           else
             echo 'Keine Aenderungen an Daten oder Code.'
