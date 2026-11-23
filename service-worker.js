@@ -1,4 +1,4 @@
-const CACHE='ops-shell-auto-75fd48a5c75b';
+const CACHE='ops-shell-auto-03ad0544c94e';
 const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./verein.pgn','./ops-auto-tasks.json'];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}))});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('ops-shell-')&&k!==CACHE)await caches.delete(k);await self.clients.claim()})()));
