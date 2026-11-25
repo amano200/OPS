@@ -234,6 +234,11 @@
       "id": "club-001",
       "taskCount": 2,
       "completedAt": "2026-11-23T14:57:33.238804+00:00"
+    },
+    "0ed78910c51e5fdbdf30e547b9780a59a7267bc011ba7412bf07a3cd8036cbe9": {
+      "id": "club-048",
+      "taskCount": 0,
+      "completedAt": "2026-11-25T14:36:10.912129+00:00"
     }
   }
 }
